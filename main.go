@@ -3,7 +3,7 @@ package main
 import (
   "github.com/droxey/goslackit/slack"
   _ "github.com/joho/godotenv/autoload"
-  "http"
+  "net/http"
   "os"
 )
 
