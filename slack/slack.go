@@ -12,7 +12,7 @@ import (
    NOTE: command_arg_1 and command_arg_2 represent optional parameteras that you define
    in the Slack API UI
 */
-const helpMessage = "type in '@BOT_NAME <command_arg_1> <command_arg_2>'"
+const helpMessage = "type in '@AcknowledgedBot <message>'"
 
 /*
    CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
@@ -34,7 +34,6 @@ func CreateSlackClient(apiKey string) *slack.RTM {
 */
 func RespondToEvents(slackClient *slack.RTM) {
 	for msg := range slackClient.IncomingEvents {
-		fmt.Println("Event Received: ", msg.Type)
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
 			botTagString := fmt.Sprintf("<@%s> ", slackClient.GetInfo().User.ID)
@@ -42,7 +41,6 @@ func RespondToEvents(slackClient *slack.RTM) {
 				continue
 			}
 			message := strings.Replace(ev.Msg.Text, botTagString, "", -1)
-
 			// TODO: Make your bot do more than respond to a help command. See notes below.
 			// Make changes below this line and add additional funcs to support your bot's functionality.
 			// sendHelp is provided as a simple example. Your team may want to call a free external API
@@ -56,7 +54,6 @@ func RespondToEvents(slackClient *slack.RTM) {
 			// ===============================================================
 			// END SLACKBOT CUSTOM CODE
 		default:
-
 		}
 	}
 }
@@ -72,8 +69,12 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 // sendResponse is NOT unimplemented --- write code in the function body to complete!
 
 func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
-	command := strings.ToLower(message)
-	println("[RECEIVED] sendResponse:", command)
+	// command := strings.ToLower(message)
+	emoji := strings.Fields(message)[0]
+	footerText := "\n\n\n----------------\nAdd a" + emoji + "emoji to acknowledge!"
+	newMessage := message + footerText
+	slackClient.SendMessage(slackClient.NewOutgoingMessage(newMessage, slackChannel))
+	// println("[RECEIVED] sendResponse:", command)
 
 	// START SLACKBOT CUSTOM CODE
 	// ===============================================================
