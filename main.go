@@ -13,6 +13,6 @@ func main() {
   botToken := os.Getenv("BOT_OAUTH_ACCESS_TOKEN")
   slackClient := slack.CreateSlackClient(botToken)
   slack.RespondToEvents(slackClient)
-  http.ListenAndServe(":"+port, nil)
+  http.ListenAndServe(":"+os.Getnev("PORT"), nil)
 
 }
