@@ -71,7 +71,10 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
 	// command := strings.ToLower(message)
 	emoji := strings.Fields(message)[0]
-	footerText := "\n\n\n----------------\nAdd a" + emoji + "emoji to acknowledge!"
+	if !strings.Contains(emoji, ":") {
+		emoji = ":heavy_check_mark:"
+	}
+	footerText := "\n\n\n----------------\nAdd a " + emoji + " emoji to acknowledge!"
 	newMessage := message + footerText
 	slackClient.SendMessage(slackClient.NewOutgoingMessage(newMessage, slackChannel))
 	// println("[RECEIVED] sendResponse:", command)
