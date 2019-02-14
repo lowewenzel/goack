@@ -14,9 +14,8 @@ import (
 */
 const helpMessage = "Type in `@AcknowledgedBot <emoji> <message>` to make a message!"
 
-/*
-   CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
-   initiating the socket connection and returning the client.
+/*CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
+  initiating the socket connection and returning the client.
 */
 func CreateSlackClient(apiKey string) *slack.RTM {
 	api := slack.New(apiKey)
@@ -25,11 +24,10 @@ func CreateSlackClient(apiKey string) *slack.RTM {
 	return rtm
 }
 
-/*
-   RespondToEvents waits for messages on the Slack client's incomingEvents channel,
-   and sends a response when it detects the bot has been tagged in a message with @<botTag>.
+/*RespondToEvents waits for messages on the Slack client's incomingEvents channel,
+  and sends a response when it detects the bot has been tagged in a message with @<botTag>.
 
-   EDIT THIS FUNCTION IN THE SPACE INDICATED ONLY!
+  EDIT THIS FUNCTION IN THE SPACE INDICATED ONLY!
 */
 func RespondToEvents(slackClient *slack.RTM) {
 	for msg := range slackClient.IncomingEvents {
