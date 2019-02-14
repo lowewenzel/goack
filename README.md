@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/lowewenzel/go-ack)](https://goreportcard.com/report/github.com/lowewenzel/go-ack)
+
 # Go Acknowledged Bot
 _Let your Slack messages be heard and **acknowledged**._
 
