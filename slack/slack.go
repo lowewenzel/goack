@@ -63,6 +63,19 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 	slackClient.SendMessage(slackClient.NewOutgoingMessage(helpMessage, slackChannel))
 }
 
+// sendHelp is a working help message, for reference.
+func sendUsers(slackClient *slack.RTM, message, slackChannel string) {
+	if strings.ToLower(message) != "users" {
+		return
+	}
+	var returnMessage string
+	users, _ := slackClient.GetUsers()
+	for user := range users {
+		message += ("\n" + string(user))
+	}
+	slackClient.SendMessage(slackClient.NewOutgoingMessage(returnMessage, slackChannel))
+}
+
 func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
 	// command := strings.ToLower(message)
 	emoji := strings.Fields(message)[0]
