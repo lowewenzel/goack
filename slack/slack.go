@@ -12,12 +12,11 @@ import (
    NOTE: command_arg_1 and command_arg_2 represent optional parameteras that you define
    in the Slack API UI
 */
-const helpMessage = "type in '@AcknowledgedBot <message>'"
+const helpMessage = "Type in `@AcknowledgedBot <emoji> <message>` to make a message!"
 
 /*
    CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
    initiating the socket connection and returning the client.
-   DO NOT EDIT THIS FUNCTION. This is a fully complete implementation.
 */
 func CreateSlackClient(apiKey string) *slack.RTM {
 	api := slack.New(apiKey)
@@ -66,8 +65,6 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 	slackClient.SendMessage(slackClient.NewOutgoingMessage(helpMessage, slackChannel))
 }
 
-// sendResponse is NOT unimplemented --- write code in the function body to complete!
-
 func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
 	// command := strings.ToLower(message)
 	emoji := strings.Fields(message)[0]
@@ -77,14 +74,4 @@ func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
 	footerText := "\n\n\n----------------\nAdd a " + emoji + " emoji to acknowledge!"
 	newMessage := message + footerText
 	slackClient.SendMessage(slackClient.NewOutgoingMessage(newMessage, slackChannel))
-	// println("[RECEIVED] sendResponse:", command)
-
-	// START SLACKBOT CUSTOM CODE
-	// ===============================================================
-	// TODO:
-	//      1. Implement sendResponse for one or more of your custom Slackbot commands.
-	//         You could call an external API here, or create your own string response. Anything goes!
-	//      2. STRETCH: Write a goroutine that calls an external API based on the data received in this function.
-	// ===============================================================
-	// END SLACKBOT CUSTOM CODE
 }
