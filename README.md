@@ -1,4 +1,4 @@
-# Go-Ack
+# Go Acknowledged Bot
 _Let your Slack messages be heard and **acknowledged**._
 
 A reacreation of [AcknowledgedBot](https://github.com/lowewenzel/acknowledgedbot), built in [Go](https://github.com/go/go) and for Slack.
