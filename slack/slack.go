@@ -1,9 +1,13 @@
 package slack
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/go-redis/redis"
+	"github.com/labstack/echo"
 	"github.com/nlopes/slack"
 )
 
@@ -29,7 +33,7 @@ func CreateSlackClient(apiKey string) *slack.RTM {
 
   EDIT THIS FUNCTION IN THE SPACE INDICATED ONLY!
 */
-func RespondToEvents(slackClient *slack.RTM) {
+func RespondToEvents(slackClient *slack.RTM, redisClient *redis.Client) {
 	for msg := range slackClient.IncomingEvents {
 		switch ev := msg.Data.(type) {
 		case *slack.MessageEvent:
@@ -46,8 +50,16 @@ func RespondToEvents(slackClient *slack.RTM) {
 
 			// START SLACKBOT CUSTOM CODE
 			// ===============================================================
-			sendResponse(slackClient, message, ev.Channel)
-			sendHelp(slackClient, message, ev.Channel)
+
+			switch command := strings.Fields(message)[0]; command {
+			case "help":
+				sendHelp(slackClient, message, ev.Channel)
+			// case "users":
+			// sendUsers(slackClient, message, ev.Channel)
+			default:
+				sendResponse(slackClient, message, ev.Channel, redisClient)
+			}
+
 			// ===============================================================
 			// END SLACKBOT CUSTOM CODE
 		default:
@@ -64,25 +76,90 @@ func sendHelp(slackClient *slack.RTM, message, slackChannel string) {
 }
 
 // sendHelp is a working help message, for reference.
-func sendUsers(slackClient *slack.RTM, message, slackChannel string) {
-	if strings.ToLower(message) != "users" {
-		return
+func getUsers(slackClient *slack.RTM, message, slackChannel string, redisClient *redis.Client) (res string) {
+	params := slack.GetUsersInConversationParameters{ChannelID: slackChannel, Cursor: "", Limit: 0}
+	users, _, err := slackClient.GetUsersInConversation(&params)
+	if err != nil {
+		fmt.Println(err)
 	}
-	var returnMessage string
-	users, _ := slackClient.GetUsers()
-	for user := range users {
-		message += ("\n" + string(user))
+	for _, user := range users {
+		redisClient.HSet(slackChannel, user, "YEET")
+		res += ("<@" + string(user) + "> ")
 	}
-	slackClient.SendMessage(slackClient.NewOutgoingMessage(returnMessage, slackChannel))
+	return res
 }
 
-func sendResponse(slackClient *slack.RTM, message, slackChannel string) {
+func sendResponse(slackClient *slack.RTM, message, slackChannel string, redisClient *redis.Client) {
 	// command := strings.ToLower(message)
 	emoji := strings.Fields(message)[0]
 	if !strings.Contains(emoji, ":") {
 		emoji = ":heavy_check_mark:"
 	}
-	footerText := "\n\n\n----------------\nAdd a " + emoji + " emoji to acknowledge!"
-	newMessage := message + footerText
-	slackClient.SendMessage(slackClient.NewOutgoingMessage(newMessage, slackChannel))
+
+	footerText := "Not Acknowledged:\n" + getUsers(slackClient, message, slackChannel, redisClient)
+
+	attachmentAction := slack.AttachmentAction{Name: "Ack", Text: "Acknowledge", Type: "button"}
+	attachment := slack.Attachment{
+		Pretext:    message,
+		Text:       footerText,
+		Fallback:   "Update Slack to view this message!",
+		Actions:    []slack.AttachmentAction{attachmentAction},
+		CallbackID: "ack_msg",
+		Color:      "#479ACC",
+	}
+
+	// newMessage := message + footerText
+	slackClient.PostMessage(slackChannel, slack.MsgOptionAttachments(attachment))
+	// slackClient.SendMessage(slackClient.NewOutgoingMessage(newMessage, slackChannel))
+}
+
+func acknowledgeCallback(c echo.Context, slackClient *slack.RTM, redisClient *redis.Client) {
+	jsonString := c.FormValue("payload")
+	var Callback slack.InteractionCallback
+	json.Unmarshal([]byte(jsonString), &Callback)
+	// slackClient.PostMessage(Callback.Channel.ID, slack.MsgOptionText("Acknowledged!", false))
+
+	channelUsers := redisClient.HGetAll(Callback.Channel.ID)
+	// fmt.Println(channelUsers.Val())
+	finalMessage := "Not Acknowledged:\n"
+
+	for i := range channelUsers.Val() {
+		if i != Callback.User.ID {
+			finalMessage += ("<@" + string(i) + "> ")
+		}
+	}
+
+	newAttachment := slack.Attachment{
+		Pretext:    Callback.OriginalMessage.Attachments[0].Pretext,
+		Text:       finalMessage,
+		Fallback:   "Update Slack to view this message!",
+		Actions:    Callback.OriginalMessage.Attachments[0].Actions,
+		CallbackID: "ack_msg",
+		Color:      "#479ACC",
+	}
+
+	newMessage := slack.MsgOptionAttachments(newAttachment)
+
+	// slackClient.PostMessage(Callback.Channel.ID, newMessage)
+	slackClient.UpdateMessage(Callback.Channel.ID, Callback.OriginalMessage.Timestamp, newMessage)
+	// slackClient.DeleteMessage(Callback.Channel.ID, Callback.OriginalMessage.Timestamp)
+
+	// return newMessage
+}
+
+// func deleteAllMessages(c echo.Context, slackClient *slack.RTM) {
+// 	slackClient.GetChannelHistory()
+// }
+
+// RunServer starts the Slack Bot server for attachment callbacks
+func RunServer(slackClient *slack.RTM, redisClient *redis.Client) {
+	port := ":" + os.Getenv("PORT")
+	e := echo.New()
+
+	// Callback for Acknowledge Button
+	e.POST("/api", func(c echo.Context) error {
+		acknowledgeCallback(c, slackClient, redisClient)
+		return nil
+	})
+	e.Logger.Fatal(e.Start(port))
 }
