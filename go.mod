@@ -1,6 +1,6 @@
 // +heroku goVersion go1.11
 
-module github.com/droxey/goslackit
+module github.com/lowewenzel/goack
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
