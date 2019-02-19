@@ -3,7 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/droxey/goslackit/slack"
+	"goack/slack"
+
 	"github.com/go-redis/redis"
 	_ "github.com/joho/godotenv/autoload"
 )
