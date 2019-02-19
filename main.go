@@ -12,7 +12,6 @@ import (
 // main is our entrypoint, where the application initializes the Slackbot.
 // DO NOT EDIT THIS FUNCTION. This is a fully complete implementation.
 func main() {
-
 	slackIt()
 }
 
