@@ -1,4 +1,4 @@
-package slack
+package goack
 
 import (
 	"encoding/json"
