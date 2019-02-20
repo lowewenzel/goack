@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"goack/goack"
+	"github.com/lowewenzel/goack/goacklib"
 
 	"github.com/go-redis/redis"
 	_ "github.com/joho/godotenv/autoload"
@@ -29,7 +29,7 @@ func RedisNewClient() *redis.Client {
 func slackIt() {
 	redisClient := RedisNewClient()
 	botToken := os.Getenv("BOT_OAUTH_ACCESS_TOKEN")
-	slackClient := goack.CreateSlackClient(botToken)
-	go goack.RunServer(slackClient, redisClient)
-	goack.RespondToEvents(slackClient, redisClient)
+	slackClient := goacklib.CreateSlackClient(botToken)
+	go goacklib.RunServer(slackClient, redisClient)
+	goacklib.RespondToEvents(slackClient, redisClient)
 }

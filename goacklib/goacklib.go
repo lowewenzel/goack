@@ -1,4 +1,4 @@
-package goack
+package goacklib
 
 import (
 	"encoding/json"
