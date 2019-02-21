@@ -3,6 +3,7 @@ package goacklib
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -18,14 +19,21 @@ import (
 */
 const helpMessage = "Type in `@AcknowledgedBot <emoji> <message>` to make a message!"
 
+type SlackLib struct {
+	RTM *slack.RTM
+}
+
 /*CreateSlackClient sets up the slack RTM (real-timemessaging) client library,
   initiating the socket connection and returning the client.
 */
-func CreateSlackClient(apiKey string) *slack.RTM {
+func (sl *SlackLib) CreateSlackClient(apiKey string) {
 	api := slack.New(apiKey)
+	if _, err := api.AuthTest(); err != nil {
+		log.Fatalln(err)
+	}
 	rtm := api.NewRTM()
 	go rtm.ManageConnection() // goroutine!
-	return rtm
+	sl.RTM = rtm
 }
 
 /*RespondToEvents waits for messages on the Slack client's incomingEvents channel,
@@ -86,6 +94,9 @@ func getUsers(slackClient *slack.RTM, message, slackChannel string, redisClient 
 		redisClient.HSet(slackChannel, user, "YEET")
 		res += ("<@" + string(user) + "> ")
 	}
+	fmt.Println("\n\nSetting")
+	fmt.Println(redisClient.HGetAll(slackChannel).Val())
+
 	return res
 }
 
@@ -118,10 +129,14 @@ func acknowledgeCallback(c echo.Context, slackClient *slack.RTM, redisClient *re
 	var Callback slack.InteractionCallback
 	json.Unmarshal([]byte(jsonString), &Callback)
 	// slackClient.PostMessage(Callback.Channel.ID, slack.MsgOptionText("Acknowledged!", false))
-
+	redisClient.HDel(Callback.Channel.ID, Callback.User.ID)
 	channelUsers := redisClient.HGetAll(Callback.Channel.ID)
+	fmt.Println("\n\nGetting")
+	fmt.Println(channelUsers.Val())
+
 	// fmt.Println(channelUsers.Val())
 	finalMessage := "Not Acknowledged:\n"
+	redisClient.HDel(Callback.Channel.ID, Callback.User.ID)
 
 	for i := range channelUsers.Val() {
 		if i != Callback.User.ID {
@@ -132,7 +147,7 @@ func acknowledgeCallback(c echo.Context, slackClient *slack.RTM, redisClient *re
 	newAttachment := slack.Attachment{
 		Pretext:    Callback.OriginalMessage.Attachments[0].Pretext,
 		Text:       finalMessage,
-		Fallback:   "Update Slack to view this message!",
+		Fallback:   "Open Slack to view this message!",
 		Actions:    Callback.OriginalMessage.Attachments[0].Actions,
 		CallbackID: "ack_msg",
 		Color:      "#479ACC",
@@ -155,6 +170,10 @@ func acknowledgeCallback(c echo.Context, slackClient *slack.RTM, redisClient *re
 func RunServer(slackClient *slack.RTM, redisClient *redis.Client) {
 	port := ":" + os.Getenv("PORT")
 	e := echo.New()
+
+	e.GET("/", func(c echo.Context) error {
+		return c.String(200, "Works!")
+	})
 
 	// Callback for Acknowledge Button
 	e.POST("/api", func(c echo.Context) error {
