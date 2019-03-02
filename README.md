@@ -15,7 +15,7 @@ Go-Ack plans to solve the problem of lack of accountability in team chats and gr
 Users can add `@ack` to any group, and when a member wants to create an important message, call ack with the following command.
 
 ```
-@ack [optional emoji] [required message]
+@AcknowledgedBot [required message]
 ```
 
 The output will be:
@@ -23,8 +23,10 @@ The output will be:
 ```
 [...message contents]
 
-----------------
-Add a ☑️ emoji to acknowledge!
+| Not Acknowledged:
+| @wenzel @bob [...other users]
+|
+| [Acknowledge]
 ```
 
 ### Implementation
