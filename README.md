@@ -29,10 +29,13 @@ Add a ☑️ emoji to acknowledge!
 
 ### Implementation
 
-Usage of Open Source Libraries:
+Usage of Open Source Libraries (thank you!):
 
 - [Slack API by nlopes](https://github.com/nlopes/slack)
 - [goslackit by droxey](https://github.com/droxey/goslackit/)
+- [redis by goredis](https://github.com/go-redis/redis)
+- [echo by labstack](https://echo.labstack.com/)
+- [godotenv by joho](github.com/joho/godotenv)
 
 Features in Development:
 
