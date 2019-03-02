@@ -129,16 +129,19 @@ func acknowledgeCallback(c echo.Context, slackClient *slack.RTM, redisClient *re
 	var Callback slack.InteractionCallback
 	json.Unmarshal([]byte(jsonString), &Callback)
 	// slackClient.PostMessage(Callback.Channel.ID, slack.MsgOptionText("Acknowledged!", false))
-	redisClient.HDel(Callback.Channel.ID, Callback.User.ID)
-	channelUsers := redisClient.HGetAll(Callback.Channel.ID)
-	fmt.Println("\n\nGetting")
-	fmt.Println(channelUsers.Val())
+	// redisClient.HDel(Callback.Channel.ID, Callback.User.ID)
+	channelUsers := redisClient.HGetAll(Callback.Channel.ID).Val()
+	if len(channelUsers) == 0 {
+		channelUsers := 
+	}
+	fmt.Println("\n\nGetting") 
+	fmt.Println(channelUsers)
 
 	// fmt.Println(channelUsers.Val())
 	finalMessage := "Not Acknowledged:\n"
 	redisClient.HDel(Callback.Channel.ID, Callback.User.ID)
 
-	for i := range channelUsers.Val() {
+	for i := range channelUsers {
 		if i != Callback.User.ID {
 			finalMessage += ("<@" + string(i) + "> ")
 		}
